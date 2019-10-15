@@ -1,30 +1,24 @@
-from flask import Flask, render_template
-from data import Articles
+from flask import Flask
+from routes import router
+from flaskext.mysql import MySQL
 
 
 app = Flask(__name__)
+app.secret_key="ejdpweajd"
 
-data = Articles()
+#database
+mysql = MySQL()
 
-@app.route('/')
-def index():
-    return render_template('home.html')
+app.config['MYSQL_DATABASE_HOST'] = "localhost"
+app.config['MYSQL_DATABASE_PORT'] = 3306
+app.config['MYSQL_DATABASE_USER'] = "root"
+app.config['MYSQL_DATABASE_PASSWORD'] = ""
+app.config['MYSQL_DATABASE_DB'] = "blogx"
 
+mysql.init_app(app)
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-
-@app.route('/articles')
-def articles():
-    return render_template('articles.html', articles = data)
-
-
-@app.route('/article/<string:id>/')
-def article(id):
-    return render_template('article.html', id=id)
-
+#Routes
+router(app, mysql)
 
 if __name__ == "__main__":
     app.run(debug=True)
