@@ -2,7 +2,7 @@ from flask import Flask, render_template, flash, redirect, url_for, logging, ses
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from data import Articles
-from classes import RegisterForm
+from classes import RegisterForm, ArticleForm
 from functools import wraps
 
 
@@ -23,12 +23,42 @@ def router(app, database):
     #list of articles
     @app.route('/articles')
     def articles():
-        return render_template('articles.html', articles = data)
+        #create a cursor
+        connection = database.connect()
+        cursor = connection.cursor()
+
+        #Get results
+        result = cursor.execute("SELECT * FROM articles")
+
+        articles = cursor.fetchall()
+        #articles = dict((key, value) for key, value in articles)
+
+        if result > 0:
+            return render_template('articles.html', articles=articles)
+
+        else:
+            msg = 'No articles Found'
+            return render_template('articles.html', msg=msg)
+        
+        #close connection
+        cursor.close()
+
 
     #article
     @app.route('/article/<string:id>/')
     def article(id):
-        return render_template('article.html', id=id)
+        connection = database.connect()
+        cursor = connection.cursor()
+
+        #Get results
+        result = cursor.execute("SELECT * FROM articles WHERE id = %s", [id])
+
+        articles = cursor.fetchall()
+
+        for article in articles:
+            print(article)
+
+        return render_template('article.html', article=article)
     
     # Check if user logged in
     def is_logged_in(f):
@@ -112,10 +142,62 @@ def router(app, database):
     @app.route('/dashboard')
     @is_logged_in
     def dashboard():
-        return render_template('dashboard.html')   
+        #create a cursor
+        connection = database.connect()
+        cursor = connection.cursor()
 
+        #Get results
+        result = cursor.execute("SELECT * FROM articles")
+
+        articles = cursor.fetchall()
+
+        if result > 0:
+            return render_template('dashboard.html', articles=articles)
+
+        else:
+            msg = 'No articles Found'
+            return render_template('dashboard.html', msg=msg)
+        
+        #close connection
+        cursor.close()
+
+
+    #dashboard
+    @app.route('/add_article', methods=['GET', 'POST'])
+    @is_logged_in
+    def add_article():
+        form = ArticleForm(request.form)
+        if request.method == 'POST' and form.validate():
+            title = form.title.data
+            body = form.body.data  
+
+            print(title)
+            print(body)
+            #create handler
+            connection = database.connect()
+            cursor = connection.cursor()
+
+            #execute
+            cursor.execute("INSERT INTO articles(title, body, author) VALUES(%s, %s, %s)",(title, body, session['username']))
+            
+            #commit 
+            connection.commit()
+
+            #close
+            cursor.close()
+
+            flash('Article created','Sucess')
+
+            return redirect(url_for('dashboard'))
+        
+        else: 
+            print('Error!')
+
+        return render_template('add_article.html', form=form)
+    
     #logout
     @app.route('/logout')
+    @is_logged_in
     def logout():
         session.clear()
         flash('You are now logged out')

@@ -2,4 +2,27 @@
 
 {% block body %}
     <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
+    <a class="btn btn-success" href="/add_article">Add article</a>
+    <hr>
+
+    <table class="table table-stripped">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Date</th>
+            <th></th>
+            <th></th>
+        </tr>
+        {% for article in articles %}
+            <tr>
+                <td>{{article[0]}}</td>
+                <td>{{article[1]}}</td>
+                <td>{{article[4]}}</td>
+                <td>{{article[3]}}</td>
+                <td><a href="edit_article/{{article[0]}}" class="btn btn-default pullright">Edit</a></td>
+                <td><a href="edit_article/{{article[0]}}" class="btn btn-danger pullright">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
