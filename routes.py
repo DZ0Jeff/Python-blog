@@ -171,8 +171,6 @@ def router(app, database):
             title = form.title.data
             body = form.body.data  
 
-            print(title)
-            print(body)
             #create handler
             connection = database.connect()
             cursor = connection.cursor()
@@ -195,6 +193,72 @@ def router(app, database):
 
         return render_template('add_article.html', form=form)
     
+    
+    @app.route('/edit_article/<string:id>', methods=['GET', 'POST'])
+    @is_logged_in
+    def edit_article(id):
+        #create cursor
+        connection = database.connect()
+        cursor = connection.cursor()
+
+        #get article by id
+        result = cursor.execute("SELECT * FROM articles WHERE id = %s", [id])
+        article = cursor.fetchall()
+
+        #get form
+        form = ArticleForm(request.form)
+
+        #populate the form
+        for datas in article:
+            form.title.data = datas[1]
+            form.body.data = datas[2]
+
+
+        if request.method == 'POST' and form.validate():
+            title = request.form['title']
+            body = request.form['body']  
+
+            #create handler
+            connection = database.connect()
+            cursor = connection.cursor()
+
+            #execute
+            cursor.execute("UPDATE articles SET title=%s, body=%s WHERE id = %s", (title, body, id))
+            
+            #commit 
+            connection.commit()
+
+            #close
+            cursor.close()
+
+            flash('Article Updated','Sucess')
+
+            return redirect(url_for('dashboard'))
+        
+        else: 
+            print('Error!')
+
+        return render_template('edit_article.html', form=form)
+    
+    @app.route('/delete_article/<string:id>', methods=['POST'])
+    @is_logged_in
+    def delete_article(id):
+        connection = database.connect()
+        cursor = connection.cursor()
+
+        #delete
+        cursor.execute("DELETE FROM articles WHERE id = %s", [id])
+
+        #commit 
+        connection.commit()
+
+        #close
+        cursor.close()
+
+        flash('Article Deleted','Sucess')
+
+        return redirect(url_for('dashboard'))
+
     #logout
     @app.route('/logout')
     @is_logged_in

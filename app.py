@@ -14,7 +14,7 @@ app.config['MYSQL_DATABASE_PORT'] = 3306
 app.config['MYSQL_DATABASE_USER'] = "root"
 app.config['MYSQL_DATABASE_PASSWORD'] = ""
 app.config['MYSQL_DATABASE_DB'] = "blogx"
-app.config['MYSQL_DATABASE_CURSORCLASS'] = 'DictCursor'
+#app.config['MYSQL_DATABASE_CURSORCLASS'] = 'DictCursor'
 
 mysql.init_app(app)
 
